@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f2">
+  <title>GTRACKER | Game updates, in one place</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f6f7f2;
+      --surface: #fff;
+      --surface-muted: #eef0e9;
+      --ink: #20231f;
+      --muted: #73796f;
+      --line: #dfe2d9;
+      --accent: #c94326;
+      --accent-hover: #a9321b;
+      --accent-wash: #fbe9e3;
+      --green: #2f7157;
+      --shadow: 0 16px 40px rgb(34 40 30 / 7%);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 14px/1.5 "DM Sans", sans-serif;
+    }
+    body.dark {
+      color-scheme: dark;
+      --page: #191d1a;
+      --surface: #232925;
+      --surface-muted: #2b332d;
+      --ink: #eef1e8;
+      --muted: #a4ada3;
+      --line: #39423b;
+      --accent: #fa7959;
+      --accent-hover: #ff987c;
+      --accent-wash: #472e27;
+      --green: #83c4a4;
+      --shadow: 0 16px 40px rgb(0 0 0 / 18%);
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    .app-header {
+      position: sticky;
+      z-index: 5;
+      top: 0;
+      display: flex;
+      min-height: 72px;
+      align-items: center;
+      gap: 28px;
+      padding: 12px 30px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .brand {
+      display: flex;
+      flex: 0 0 220px;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      font: 700 20px/1 "Space Grotesk", sans-serif;
+      text-decoration: none;
+    }
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+    }
+    .brand span:last-child { color: var(--accent); }
+    .search-form {
+      display: flex;
+      width: min(100%, 560px);
+      height: 42px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--page);
+    }
+    .search-form:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+    .search-form input {
+      width: 100%;
+      min-width: 0;
+      padding: 0 14px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+    .search-form button, .icon-button {
+      display: grid;
+      flex: 0 0 44px;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .search-form button { background: var(--accent); color: #fff; }
+    .search-form button:hover { background: var(--accent-hover); }
+    .header-actions { display: flex; flex: 0 0 220px; justify-content: flex-end; }
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      font-size: 17px;
+    }
+    .icon-button:hover { background: var(--surface-muted); }
+
+    .layout { display: flex; min-height: calc(100vh - 72px); }
+    .sidebar {
+      display: flex;
+      width: 248px;
+      flex: 0 0 248px;
+      flex-direction: column;
+      padding: 26px 16px;
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .side-label {
+      margin: 0 10px 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+    .nav-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+    .nav-button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: left;
+    }
+    .nav-button:hover, .nav-button.active { background: var(--accent-wash); color: var(--accent); }
+    .nav-icon { display: grid; width: 19px; place-items: center; font-size: 16px; }
+    .nav-count { margin-left: auto; font-size: 12px; }
+    .sidebar-divider { height: 1px; margin: 24px 8px; background: var(--line); }
+    .tracked-list { display: grid; gap: 3px; }
+    .tracked-item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 9px;
+      padding: 8px;
+      overflow: hidden;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: left;
+    }
+    .tracked-item:hover { background: var(--surface-muted); color: var(--ink); }
+    .tracked-item img { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 4px; object-fit: cover; background: var(--surface-muted); }
+    .tracked-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-note { margin: auto 8px 0; padding-top: 24px; color: var(--muted); font-size: 11px; }
+
+    main { width: 100%; min-width: 0; padding: 38px clamp(20px, 5vw, 68px) 60px; }
+    .main-inner { width: min(100%, 1040px); margin: 0 auto; }
+    .eyebrow { color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 1.25px; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { font-family: "Space Grotesk", sans-serif; }
+    h1 { margin-bottom: 8px; font-size: clamp(26px, 4vw, 38px); line-height: 1.12; }
+    h2 { margin-bottom: 5px; font-size: 21px; }
+    .intro { max-width: 570px; margin-bottom: 28px; color: var(--muted); }
+    .search-hint { display: flex; align-items: center; gap: 8px; margin: 0 0 18px; color: var(--muted); font-size: 12px; }
+    .search-hint strong { color: var(--ink); }
+    .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+    .game-result {
+      display: flex;
+      min-height: 112px;
+      gap: 13px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      cursor: pointer;
+      text-align: left;
+      text-decoration: none;
+      transition: border-color .16s, transform .16s;
+    }
+    .game-result:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .game-result img { width: 76px; height: 86px; flex: 0 0 76px; border-radius: 4px; object-fit: cover; background: var(--surface-muted); }
+    .game-result-copy { display: flex; min-width: 0; flex-direction: column; justify-content: center; }
+    .game-result-title { display: -webkit-box; overflow: hidden; font-weight: 700; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .game-result-meta { margin-top: 7px; color: var(--muted); font-size: 12px; }
+    .empty-state {
+      display: grid;
+      min-height: 280px;
+      place-items: center;
+      padding: 36px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      text-align: center;
+    }
+    .empty-state-inner { max-width: 390px; }
+    .empty-mark { display: grid; width: 56px; height: 56px; margin: 0 auto 17px; place-items: center; border-radius: 14px; background: var(--accent-wash); color: var(--accent); font-size: 25px; }
+    .empty-state h2 { margin-bottom: 8px; }
+    .empty-state p { margin-bottom: 0; color: var(--muted); }
+    .status { padding: 30px 12px; color: var(--muted); text-align: center; }
+    .status.error { color: var(--accent); }
+
+    .selected-section { margin-top: 32px; }
+    .game-heading {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .selected-cover { width: 88px; height: 102px; flex: 0 0 88px; border-radius: 6px; object-fit: cover; background: var(--surface-muted); }
+    .game-heading-copy { min-width: 0; flex: 1; }
+    .game-heading h2 { margin: 4px 0 5px; font-size: clamp(22px, 3vw, 30px); }
+    .game-subtitle { margin: 0; color: var(--muted); font-size: 12px; }
+    .track-button {
+      display: inline-flex;
+      min-height: 40px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .track-button:hover { background: var(--accent-hover); }
+    .track-button.is-tracked { border-color: var(--line); background: var(--surface); color: var(--ink); }
+    .track-button.is-tracked:hover { border-color: var(--accent); color: var(--accent); }
+    .feed-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 24px 0 14px; }
+    .feed-toolbar h3 { margin: 0; font-size: 16px; }
+    .feed-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 7px; background: var(--surface-muted); }
+    .feed-tab { padding: 7px 12px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 600; }
+    .feed-tab:hover { color: var(--ink); }
+    .feed-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / 8%); }
+    .article-list { display: grid; gap: 9px; }
+    .article {
+      display: block;
+      padding: 15px 17px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      text-decoration: none;
+      transition: border-color .15s;
+    }
+    .article:hover { border-color: var(--accent); }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; color: var(--muted); font-size: 11px; }
+    .article-source { color: var(--green); font-weight: 700; }
+    .article-title { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.45; }
+    .article-summary { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .feed-footnote { margin: 14px 0 0; color: var(--muted); font-size: 11px; }
+    .feed-footnote a { color: var(--accent); }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 760px) {
+      .app-header { min-height: 62px; gap: 12px; padding: 10px 14px; }
+      .brand { flex-basis: auto; font-size: 18px; }
+      .brand-mark { width: 31px; height: 31px; }
+      .header-actions { flex: 0 0 40px; }
+      .layout { min-height: calc(100vh - 62px); }
+      .sidebar { width: 64px; flex-basis: 64px; align-items: center; padding: 18px 7px; }
+      .side-label, .sidebar-divider, .tracked-list, .sidebar-note, .nav-button .nav-text, .nav-count { display: none; }
+      .nav-list { width: 100%; }
+      .nav-button { justify-content: center; padding: 12px 0; }
+      .nav-icon { font-size: 18px; }
+      main { padding: 28px 18px 44px; }
+    }
+    @media (max-width: 520px) {
+      .app-header { flex-wrap: wrap; }
+      .brand { flex: 1; }
+      .search-form { order: 3; width: 100%; flex: 1 0 100%; }
+      .header-actions { flex: 0 0 40px; }
+      .layout { min-height: calc(100vh - 116px); }
+      .sidebar { width: 52px; flex-basis: 52px; padding: 14px 5px; }
+      main { padding: 25px 14px 36px; }
+      .game-heading { align-items: flex-start; gap: 12px; }
+      .selected-cover { width: 64px; height: 78px; flex-basis: 64px; }
+      .track-button { width: 40px; min-width: 40px; height: 40px; padding: 0; overflow: hidden; font-size: 0; }
+      .track-button::first-letter { font-size: 17px; }
+      .feed-toolbar { align-items: flex-start; flex-direction: column; }
+      .feed-tabs { width: 100%; }
+      .feed-tab { flex: 1; padding-inline: 5px; }
+      .results { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#" aria-label="GTRACKER home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>G<span>TRACKER</span></span>
+    </a>
+    <form class="search-form" id="search-form" role="search">
+      <input id="game-search" type="search" placeholder="Search any game..." aria-label="Search games" autocomplete="off">
+      <button type="submit" aria-label="Search">⌕</button>
+    </form>
+    <div class="header-actions">
+      <button class="icon-button" id="theme-button" type="button" aria-label="Switch to dark theme" title="Switch theme">☾</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Main navigation">
+      <p class="side-label">Workspace</p>
+      <nav class="nav-list" aria-label="Views">
+        <button class="nav-button active" type="button" data-view="discover" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">⌕</span><span class="nav-text">Discover</span>
+        </button>
+        <button class="nav-button" type="button" data-view="watchlist">
+          <span class="nav-icon" aria-hidden="true">☆</span><span class="nav-text">Watchlist</span><span class="nav-count" id="watch-count">0</span>
+        </button>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <p class="side-label">Tracked games</p>
+      <div class="tracked-list" id="tracked-list"></div>
+      <p class="sidebar-note">News and rumors link back to their publishers. Rumors are unverified until confirmed by an official source.</p>
+    </aside>
+
+    <main>
+      <div class="main-inner">
+        <section id="discover-view" aria-labelledby="page-title">
+          <p class="eyebrow">Your gaming radar</p>
+          <h1 id="page-title">Stay in the know.</h1>
+          <p class="intro">Look up a game to follow its announcements, news, and community rumors. Your watchlist stays on this device.</p>
+          <div id="search-message" class="search-hint" hidden aria-live="polite"></div>
+          <div id="results" class="results" aria-live="polite"></div>
+          <div id="welcome" class="empty-state">
+            <div class="empty-state-inner">
+              <span class="empty-mark" aria-hidden="true">⌕</span>
+              <h2>What are you playing?</h2>
+              <p>Search a game by name to find its store listing and the latest coverage.</p>
+            </div>
+          </div>
+          <section class="selected-section" id="selected-section" hidden aria-label="Game coverage">
+            <div class="game-heading">
+              <img class="selected-cover" id="selected-cover" alt="">
+              <div class="game-heading-copy">
+                <p class="eyebrow">Game tracker</p>
+                <h2 id="selected-title"></h2>
+                <p class="game-subtitle" id="selected-subtitle"></p>
+              </div>
+              <button class="track-button" id="track-button" type="button"></button>
+            </div>
+            <div class="feed-toolbar">
+              <h3 id="feed-heading">Latest updates</h3>
+              <div class="feed-tabs" role="tablist" aria-label="Coverage type">
+                <button class="feed-tab active" type="button" role="tab" aria-selected="true" data-feed="updates">Updates</button>
+                <button class="feed-tab" type="button" role="tab" aria-selected="false" data-feed="rumors">Rumors</button>
+                <button class="feed-tab" type="button" role="tab" aria-selected="false" data-feed="steam">Steam</button>
+              </div>
+            </div>
+            <div id="article-list" class="article-list" aria-live="polite"></div>
+            <p class="feed-footnote" id="feed-footnote"></p>
+          </section>
+        </section>
+        <section id="watchlist-view" hidden aria-labelledby="watchlist-title">
+          <p class="eyebrow">Your collection</p>
+          <h1 id="watchlist-title">Tracked games</h1>
+          <p class="intro">The games you follow, saved privately in this browser.</p>
+          <div id="watchlist-results" class="results"></div>
+          <div id="watchlist-empty" class="empty-state">
+            <div class="empty-state-inner">
+              <span class="empty-mark" aria-hidden="true">☆</span>
+              <h2>Your watchlist is clear</h2>
+              <p>Search for a game and add it to keep its coverage close.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const searchForm = document.querySelector("#search-form");
+    const searchInput = document.querySelector("#game-search");
+    const results = document.querySelector("#results");
+    const searchMessage = document.querySelector("#search-message");
+    const welcome = document.querySelector("#welcome");
+    const selectedSection = document.querySelector("#selected-section");
+    const articleList = document.querySelector("#article-list");
+    const feedFootnote = document.querySelector("#feed-footnote");
+    const trackedList = document.querySelector("#tracked-list");
+    const discoverView = document.querySelector("#discover-view");
+    const watchlistView = document.querySelector("#watchlist-view");
+    const watchlistResults = document.querySelector("#watchlist-results");
+    const watchlistEmpty = document.querySelector("#watchlist-empty");
+    const watchCount = document.querySelector("#watch-count");
+    const themeButton = document.querySelector("#theme-button");
+    const feedTitles = { updates: "Latest updates", rumors: "Rumors and leaks", steam: "Steam announcements" };
+    const feedQueries = {
+      updates: (name) => `"${name}" game update OR patch OR announcement`,
+      rumors: (name) => `"${name}" game leak OR rumor`,
+    };
+    const fallbackCover = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 86'%3E%3Crect width='76' height='86' fill='%23e4e6df'/%3E%3Cpath d='M25 29h26v28H25z' fill='none' stroke='%2373796f' stroke-width='2'/%3E%3C/svg%3E";
+    let activeGame = null;
+    let activeFeed = "updates";
+    let searchSequence = 0;
+    let feedSequence = 0;
+    let watchlist = loadWatchlist();
+
+    function loadWatchlist() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("gtracker-watchlist") || "[]");
+        return Array.isArray(saved) ? saved.filter((game) => game && game.gameID && game.external) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveWatchlist() {
+      try {
+        localStorage.setItem("gtracker-watchlist", JSON.stringify(watchlist));
+      } catch {
+        setSearchMessage("Your browser could not save the watchlist. You can still use this page for now.", true);
+      }
+      renderWatchlist();
+    }
+
+    function setSearchMessage(message, isError = false) {
+      searchMessage.hidden = !message;
+      searchMessage.textContent = message || "";
+      searchMessage.classList.toggle("error", isError);
+    }
+
+    function safeImage(image) {
+      return typeof image === "string" && /^https:\/\//i.test(image) ? image : "";
+    }
+
+    function gameFromResult(item) {
+      return {
+        gameID: String(item.gameID),
+        external: item.external || "Unknown game",
+        steamAppID: item.steamAppID || "",
+        thumb: safeImage(item.thumb),
+        cheapest: item.cheapest || "",
+      };
+    }
+
+    function createGameCard(game) {
+      const button = document.createElement("button");
+      button.className = "game-result";
+      button.type = "button";
+      button.setAttribute("aria-label", `Open ${game.external}`);
+      const image = document.createElement("img");
+      image.src = game.thumb || fallbackCover;
+      image.alt = "";
+      image.loading = "lazy";
+      const copy = document.createElement("span");
+      copy.className = "game-result-copy";
+      const title = document.createElement("span");
+      title.className = "game-result-title";
+      title.textContent = game.external;
+      const meta = document.createElement("span");
+      meta.className = "game-result-meta";
+      meta.textContent = game.steamAppID ? "Steam listing available" : "Game listing";
+      copy.append(title, meta);
+      button.append(image, copy);
+      button.addEventListener("click", () => selectGame(game));
+      return button;
+    }
+
+    function showExternalSearches(query) {
+      const searches = [
+        { title: `Search Steam for ${query}`, description: "Browse matching game listings", url: `https://store.steampowered.com/search/?term=${encodeURIComponent(query)}&category1=998` },
+        { title: `Search news for ${query}`, description: "Open current game coverage", url: newsSearchUrl(`"${query}" game update OR announcement`) },
+      ];
+      results.replaceChildren(...searches.map((search) => {
+        const link = document.createElement("a");
+        link.className = "game-result";
+        link.href = search.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        const mark = document.createElement("span");
+        mark.className = "empty-mark";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = "↗";
+        const copy = document.createElement("span");
+        copy.className = "game-result-copy";
+        const title = document.createElement("span");
+        title.className = "game-result-title";
+        title.textContent = search.title;
+        const description = document.createElement("span");
+        description.className = "game-result-meta";
+        description.textContent = search.description;
+        copy.append(title, description);
+        link.append(mark, copy);
+        return link;
+      }));
+    }
+
+    async function searchGames(query) {
+      const sequence = ++searchSequence;
+      results.replaceChildren();
+      welcome.hidden = true;
+      selectedSection.hidden = true;
+      setSearchMessage(`Searching for “${query}”…`);
+      try {
+        const url = new URL("https://www.cheapshark.com/api/1.0/games");
+        url.search = new URLSearchParams({ title: query, limit: "12" });
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Game search is temporarily unavailable.");
+        const games = await response.json();
+        if (sequence !== searchSequence) return;
+        if (!Array.isArray(games) || games.length === 0) {
+          setSearchMessage(`No matches for “${query}”. Try another title.`, true);
+          showExternalSearches(query);
+          return;
+        }
+        setSearchMessage(`${games.length} matches for “${query}”. Select a game to view coverage.`);
+        results.replaceChildren(...games.map((item) => createGameCard(gameFromResult(item))));
+      } catch (error) {
+        if (sequence !== searchSequence) return;
+        setSearchMessage(`${error.message} Check your connection and try again.`, true);
+        showExternalSearches(query);
+      }
+    }
+
+    function isTracked(game) {
+      return watchlist.some((item) => item.gameID === game.gameID);
+    }
+
+    async function selectGame(game) {
+      activeGame = game;
+      activeFeed = "updates";
+      discoverView.hidden = false;
+      watchlistView.hidden = true;
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        const active = button.dataset.view === "discover";
+        button.classList.toggle("active", active);
+        if (active) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      document.querySelector("#selected-cover").src = game.thumb || fallbackCover;
+      document.querySelector("#selected-cover").alt = game.thumb ? `${game.external} cover` : "No cover available";
+      document.querySelector("#selected-title").textContent = game.external;
+      document.querySelector("#selected-subtitle").textContent = game.steamAppID ? `Steam app ${game.steamAppID}` : "No Steam app listing found";
+      updateTrackButton();
+      document.querySelectorAll(".feed-tab").forEach((button) => {
+        const active = button.dataset.feed === activeFeed;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", String(active));
+      });
+      selectedSection.hidden = false;
+      setSearchMessage("");
+      await loadFeed(activeFeed);
+      selectedSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function updateTrackButton() {
+      const button = document.querySelector("#track-button");
+      const tracked = activeGame && isTracked(activeGame);
+      button.classList.toggle("is-tracked", Boolean(tracked));
+      button.textContent = tracked ? "✓ Tracking" : "+ Track game";
+      button.setAttribute("aria-pressed", String(Boolean(tracked)));
+    }
+
+    function toggleTrackedGame() {
+      if (!activeGame) return;
+      if (isTracked(activeGame)) watchlist = watchlist.filter((game) => game.gameID !== activeGame.gameID);
+      else watchlist = [activeGame, ...watchlist];
+      saveWatchlist();
+      updateTrackButton();
+    }
+
+    function renderWatchlist() {
+      watchCount.textContent = String(watchlist.length);
+      trackedList.replaceChildren();
+      watchlist.forEach((game) => {
+        const button = document.createElement("button");
+        button.className = "tracked-item";
+        button.type = "button";
+        button.title = game.external;
+        const image = document.createElement("img");
+        image.src = game.thumb || fallbackCover;
+        image.alt = "";
+        const name = document.createElement("span");
+        name.textContent = game.external;
+        button.append(image, name);
+        button.addEventListener("click", () => selectGame(game));
+        trackedList.append(button);
+      });
+      watchlistResults.replaceChildren(...watchlist.map((game) => createGameCard(game)));
+      watchlistEmpty.hidden = watchlist.length > 0;
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+    }
+
+    function addArticle({ title, link, source, date, summary }) {
+      if (!title || !link) return;
+      let parsedLink;
+      try {
+        parsedLink = new URL(link);
+        if (parsedLink.protocol !== "https:") return;
+      } catch {
+        return;
+      }
+      const anchor = document.createElement("a");
+      anchor.className = "article";
+      anchor.href = parsedLink.href;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      const meta = document.createElement("div");
+      meta.className = "article-meta";
+      const sourceElement = document.createElement("span");
+      sourceElement.className = "article-source";
+      sourceElement.textContent = source || new URL(parsedLink.href).hostname.replace(/^www\./, "");
+      const dateElement = document.createElement("span");
+      dateElement.textContent = formatDate(date);
+      meta.append(sourceElement, dateElement);
+      const heading = document.createElement("p");
+      heading.className = "article-title";
+      heading.textContent = title;
+      anchor.append(meta, heading);
+      if (summary) {
+        const description = document.createElement("p");
+        description.className = "article-summary";
+        description.textContent = summary;
+        anchor.append(description);
+      }
+      articleList.append(anchor);
+    }
+
+    function setFeedStatus(message, isError = false) {
+      const status = document.createElement("div");
+      status.className = `status${isError ? " error" : ""}`;
+      status.textContent = message;
+      articleList.replaceChildren(status);
+    }
+
+    function newsSearchUrl(query) {
+      return `https://news.google.com/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    }
+
+    async function loadGoogleNews(feed, game, sequence) {
+      const query = feedQueries[feed](game.external);
+      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("News feed unavailable");
+      const xmlText = await response.text();
+      const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+      if (xml.querySelector("parsererror")) throw new Error("News feed could not be read");
+      const items = [...xml.querySelectorAll("item")].slice(0, 10);
+      if (sequence !== feedSequence) return 0;
+      items.forEach((item) => {
+        const source = item.querySelector("source");
+        addArticle({
+          title: item.querySelector("title")?.textContent?.trim(),
+          link: item.querySelector("link")?.textContent?.trim(),
+          source: source?.textContent?.trim(),
+          date: item.querySelector("pubDate")?.textContent,
+        });
+      });
+      return items.length;
+    }
+
+    async function loadSteamNews(game, sequence) {
+      if (!game.steamAppID) return 0;
+      const url = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/");
+      url.search = new URLSearchParams({ appid: game.steamAppID, count: "10", maxlength: "300" });
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Steam announcements unavailable");
+      const payload = await response.json();
+      const items = payload.appnews?.newsitems || [];
+      if (sequence !== feedSequence) return 0;
+      items.forEach((item) => {
+        const summary = new DOMParser().parseFromString(item.contents || "", "text/html").body.textContent.trim().slice(0, 220);
+        addArticle({ title: item.title, link: item.url, source: item.feedlabel || "Steam", date: item.date * 1000, summary });
+      });
+      return items.length;
+    }
+
+    async function loadFeed(feed) {
+      const sequence = ++feedSequence;
+      const game = activeGame;
+      activeFeed = feed;
+      document.querySelector("#feed-heading").textContent = feedTitles[feed];
+      articleList.replaceChildren();
+      feedFootnote.replaceChildren();
+      const footnoteLink = document.createElement("a");
+      footnoteLink.target = "_blank";
+      footnoteLink.rel = "noopener noreferrer";
+      if (feed === "steam") {
+        if (!activeGame.steamAppID) {
+          setFeedStatus("No Steam app listing was found for this game.");
+          return;
+        }
+        setFeedStatus("Loading official Steam announcements…");
+        try {
+          const count = await loadSteamNews(game, sequence);
+          if (sequence !== feedSequence) return;
+          if (!count) setFeedStatus("No recent Steam announcements were found.");
+          footnoteLink.href = `https://store.steampowered.com/news/app/${encodeURIComponent(activeGame.steamAppID)}`;
+          footnoteLink.textContent = "View this game's Steam news";
+          feedFootnote.append("Official source: ", footnoteLink);
+        } catch {
+          setFeedStatus("Steam announcements could not be loaded in this browser. Open the official feed instead.", true);
+          footnoteLink.href = `https://store.steampowered.com/news/app/${encodeURIComponent(activeGame.steamAppID)}`;
+          footnoteLink.textContent = "Open Steam news";
+          feedFootnote.append(footnoteLink);
+        }
+        return;
+      }
+
+      setFeedStatus("Loading coverage…");
+      try {
+        const count = await loadGoogleNews(feed, game, sequence);
+        if (sequence !== feedSequence) return;
+        if (!count) setFeedStatus("No matching coverage found. Try the search link below.");
+      } catch {
+        setFeedStatus("Coverage could not be loaded here. You can still search the news sources directly.", true);
+      }
+      footnoteLink.href = newsSearchUrl(feedQueries[feed](activeGame.external));
+      footnoteLink.textContent = "Open this search in Google News";
+      feedFootnote.append(feed === "rumors" ? "Rumors are unverified. " : "Search provided by Google News. ", footnoteLink);
+    }
+
+    function showView(view) {
+      const isWatchlist = view === "watchlist";
+      discoverView.hidden = isWatchlist;
+      watchlistView.hidden = !isWatchlist;
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        const active = button.dataset.view === view;
+        button.classList.toggle("active", active);
+        if (active) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      if (isWatchlist) renderWatchlist();
+    }
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = searchInput.value.trim();
+      if (query.length < 2) {
+        setSearchMessage("Enter at least two characters to search.", true);
+        searchInput.focus();
+        return;
+      }
+      showView("discover");
+      searchGames(query);
+    });
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => showView(button.dataset.view));
+    });
+    document.querySelectorAll(".feed-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".feed-tab").forEach((tab) => {
+          const active = tab === button;
+          tab.classList.toggle("active", active);
+          tab.setAttribute("aria-selected", String(active));
+        });
+        if (activeGame) loadFeed(button.dataset.feed);
+      });
+    });
+    document.querySelector("#track-button").addEventListener("click", toggleTrackedGame);
+    themeButton.addEventListener("click", () => {
+      const dark = document.body.classList.toggle("dark");
+      themeButton.textContent = dark ? "☀" : "☾";
+      themeButton.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+      try { localStorage.setItem("gtracker-theme", dark ? "dark" : "light"); } catch { /* Theme still works for this visit. */ }
+    });
+    document.querySelector(".brand").addEventListener("click", (event) => {
+      event.preventDefault();
+      showView("discover");
+      results.replaceChildren();
+      setSearchMessage("");
+      welcome.hidden = false;
+      selectedSection.hidden = true;
+    });
+
+    try {
+      if (localStorage.getItem("gtracker-theme") === "dark") {
+        document.body.classList.add("dark");
+        themeButton.textContent = "☀";
+        themeButton.setAttribute("aria-label", "Switch to light theme");
+      }
+    } catch { /* Theme preference is optional. */ }
+    renderWatchlist();
+  </script>
+</body>
+</html>
